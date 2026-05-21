@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✨ Birthday Magic Maker</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&family=Satisfy&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #f0d080;
+    --cream: #fdf8f0;
+    --deep: #1a0a2e;
+    --rose: #e8547a;
+    --violet: #7c4dff;
+    --teal: #00bfa5;
+    --card-bg: rgba(255,255,255,0.06);
+    --border: rgba(201,168,76,0.3);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #0d0720;
+    color: #f0e8d0;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* STARS */
+  #stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .star { position: absolute; border-radius: 50%; background: white; animation: twinkle var(--d) ease-in-out infinite; }
+  @keyframes twinkle { 0%,100%{opacity:0.2;transform:scale(1)} 50%{opacity:1;transform:scale(1.4)} }
+
+  /* LAYOUT */
+  .page { position: relative; z-index: 1; }
+
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 80px 20px 60px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(124,77,255,0.25) 0%, transparent 70%);
+  }
+  .hero-script {
+    font-family: 'Satisfy', cursive;
+    font-size: clamp(42px, 8vw, 80px);
+    color: var(--gold-light);
+    text-shadow: 0 0 40px rgba(201,168,76,0.5);
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  .hero-sub {
+    font-size: 16px;
+    color: rgba(240,232,208,0.6);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  /* FORM CARD */
+  .form-card {
+    max-width: 820px;
+    margin: 0 auto 60px;
+    padding: 0 20px;
+  }
+
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 36px 0 24px;
+  }
+  .section-divider span {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .section-divider::before, .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media(max-width:600px) { .grid-2,.grid-3 { grid-template-columns: 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+  }
+  .field input, .field select, .field textarea {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    color: #f0e8d0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    width: 100%;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--gold);
+    background: rgba(255,255,255,0.08);
+  }
+  .field input[type="file"] { padding: 10px 18px; cursor: pointer; }
+  .field input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.8); cursor: pointer; }
+  .field select option { background: #1a0a2e; }
+  .field textarea { resize: vertical; min-height: 80px; }
+
+  .photo-preview {
+    width: 80px; height: 80px; border-radius: 50%;
+    border: 2px solid var(--gold);
+    object-fit: cover;
+    display: none;
+    margin-top: 8px;
+  }
+
+  .hobbies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+  .hobby-chip {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 10px 14px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 13px;
+    color: rgba(240,232,208,0.7);
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .hobby-chip.selected {
+    background: rgba(201,168,76,0.15);
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+  .hobby-chip:hover { border-color: rgba(201,168,76,0.6); }
+
+  .music-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 10px; }
+  .music-chip {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(124,77,255,0.3);
+    border-radius: 10px;
+    padding: 12px 14px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 13px;
+    color: rgba(240,232,208,0.7);
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .music-chip.selected {
+    background: rgba(124,77,255,0.15);
+    border-color: var(--violet);
+    color: #c4aaff;
+  }
+
+  .btn-generate {
+    display: block;
+    width: 100%;
+    margin-top: 40px;
+    padding: 20px;
+    background: linear-gradient(135deg, #c9a84c, #f0d080, #c9a84c);
+    background-size: 200% 100%;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: #1a0a2e;
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+    animation: shimmer 3s linear infinite;
+  }
+  @keyframes shimmer { 0%{background-position:0%} 100%{background-position:200%} }
+  .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(201,168,76,0.4); }
+  .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* RESULT */
+  #result-section { display: none; }
+
+  .result-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
+
+  /* NASA SECTION */
+  .nasa-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+  .nasa-img {
+    width: 100%;
+    max-height: 450px;
+    object-fit: cover;
+    display: block;
+  }
+  .nasa-info {
+    padding: 24px 28px;
+  }
+  .nasa-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 8px;
+  }
+  .nasa-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--gold-light);
+    margin-bottom: 10px;
+  }
+  .nasa-desc { font-size: 14px; color: rgba(240,232,208,0.65); line-height: 1.7; }
+
+  /* PHOTO BANNER */
+  .birthday-banner {
+    text-align: center;
+    padding: 50px 20px 30px;
+    position: relative;
+  }
+  .birthday-photo {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--gold);
+    box-shadow: 0 0 40px rgba(201,168,76,0.4);
+    margin: 0 auto 24px;
+    display: block;
+  }
+  .birthday-name {
+    font-family: 'Satisfy', cursive;
+    font-size: clamp(36px,7vw,64px);
+    color: var(--gold-light);
+    text-shadow: 0 0 30px rgba(201,168,76,0.5);
+    margin-bottom: 8px;
+  }
+  .birthday-age {
+    font-size: 15px;
+    color: rgba(240,232,208,0.55);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  /* WISH CARD */
+  .wish-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 40px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .wish-card::before {
+    content: '"';
+    font-family: 'Playfair Display', serif;
+    font-size: 120px;
+    color: rgba(201,168,76,0.08);
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    line-height: 1;
+  }
+  .wish-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+  .wish-text {
+    font-size: 16px;
+    line-height: 1.9;
+    color: rgba(240,232,208,0.88);
+  }
+
+  /* ACROSTIC */
+  .acrostic-card {
+    background: var(--card-bg);
+    border: 1px solid rgba(232,84,122,0.3);
+    border-radius: 20px;
+    padding: 36px 40px;
+    margin-bottom: 24px;
+  }
+  .acrostic-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--rose);
+    margin-bottom: 24px;
+  }
+  .acrostic-row {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .acrostic-letter {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--rose);
+    min-width: 36px;
+    line-height: 1;
+  }
+  .acrostic-word { font-size: 15px; color: rgba(240,232,208,0.85); line-height: 1.5; }
+
+  /* HOBBY ICONS */
+  .hobbies-display {
+    background: var(--card-bg);
+    border: 1px solid rgba(0,191,165,0.3);
+    border-radius: 20px;
+    padding: 36px 40px;
+    margin-bottom: 24px;
+  }
+  .hobbies-display h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 24px;
+  }
+  .hobby-items { display: flex; flex-wrap: wrap; gap: 14px; }
+  .hobby-item {
+    background: rgba(0,191,165,0.1);
+    border: 1px solid rgba(0,191,165,0.3);
+    border-radius: 50px;
+    padding: 10px 20px;
+    font-size: 14px;
+    color: #80e8dc;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hobby-emoji { font-size: 20px; }
+
+  /* FUTURE CARD */
+  .future-card {
+    background: linear-gradient(135deg, rgba(124,77,255,0.1), rgba(201,168,76,0.05));
+    border: 1px solid rgba(124,77,255,0.3);
+    border-radius: 20px;
+    padding: 36px 40px;
+    margin-bottom: 24px;
+  }
+  .future-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #c4aaff;
+    margin-bottom: 16px;
+  }
+
+  /* WISHER CARD */
+  .wisher-card {
+    background: var(--card-bg);
+    border: 1px solid rgba(232,84,122,0.25);
+    border-radius: 20px;
+    padding: 28px 36px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .wisher-avatar {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--rose), var(--violet));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: white;
+    flex-shrink: 0;
+  }
+  .wisher-info p { font-size: 13px; color: rgba(240,232,208,0.55); margin-bottom: 4px; }
+  .wisher-info strong { font-size: 17px; color: var(--gold-light); font-weight: 500; }
+
+  /* LOADING */
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13,7,32,0.92);
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+  }
+  .loading-overlay.active { display: flex; }
+  .loader-ring {
+    width: 70px; height: 70px;
+    border: 3px solid rgba(201,168,76,0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-family: 'Satisfy', cursive; font-size: 22px; color: var(--gold-light); }
+
+  /* CONFETTI */
+  .confetti-piece {
+    position: fixed;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    animation: fall linear forwards;
+    pointer-events: none;
+    z-index: 200;
+  }
+  @keyframes fall {
+    0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* MUSIC PLAYER */
+  .music-player {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: rgba(13,7,32,0.9);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 14px 22px;
+    display: flex; align-items: center; gap: 12px;
+    z-index: 50;
+    backdrop-filter: blur(10px);
+    display: none;
+  }
+  .music-player.visible { display: flex; }
+  .music-btn {
+    background: var(--gold);
+    border: none;
+    border-radius: 50%;
+    width: 36px; height: 36px;
+    cursor: pointer;
+    color: #1a0a2e;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .music-label { font-size: 13px; color: rgba(240,232,208,0.7); max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .equalizer { display: flex; align-items: flex-end; gap: 3px; height: 18px; }
+  .eq-bar {
+    width: 3px; border-radius: 2px; background: var(--gold);
+    animation: eq var(--d) ease-in-out infinite alternate;
+  }
+  @keyframes eq { from { height: 4px; } to { height: var(--h); } }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 10px 20px;
+    color: rgba(240,232,208,0.7);
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 32px;
+    transition: all 0.2s;
+  }
+  .back-btn:hover { border-color: var(--gold); color: var(--gold-light); }
+
+  audio { display: none; }
+
+  .error-msg { color: #ff6b6b; font-size: 13px; margin-top: 6px; display: none; }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in { animation: fadeInUp 0.6s ease forwards; }
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.3s; }
+  .delay-4 { animation-delay: 0.4s; }
+  .delay-5 { animation-delay: 0.5s; }
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<div class="page">
+
+  <!-- FORM SECTION -->
+  <div id="form-section">
+    <div class="hero">
+      <div class="hero-script">Birthday Magic Maker</div>
+      <div class="hero-sub">Create a wish they'll never forget</div>
+    </div>
+
+    <div class="form-card">
+
+      <div class="section-divider"><span>About the Birthday Star</span></div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Their Full Name</label>
+          <input type="text" id="bday-name" placeholder="e.g. Anika Sharma" />
+        </div>
+        <div class="field">
+          <label>Date of Birth</label>
+          <input type="date" id="bday-dob" />
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:20px">
+        <div class="field">
+          <label>Their Photo</label>
+          <input type="file" id="bday-photo" accept="image/*" />
+          <img id="photo-preview" class="photo-preview" />
+        </div>
+        <div class="field">
+          <label>Gender</label>
+          <select id="bday-gender">
+            <option value="">Select...</option>
+            <option value="her">Her / She</option>
+            <option value="him">Him / He</option>
+            <option value="them">Them / They</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-divider" style="margin-top:36px"><span>Their Hobbies & Passions</span></div>
+      <p style="font-size:13px;color:rgba(240,232,208,0.5);margin-bottom:16px">Pick all that apply — we'll weave these into the wish</p>
+
+      <div class="hobbies-grid" id="hobbies-grid">
+        <!-- filled by JS -->
+      </div>
+
+      <div class="field" style="margin-top:16px">
+        <label>Any other hobby?</label>
+        <input type="text" id="custom-hobby" placeholder="e.g. Astronomy, Baking, Gaming..." />
+      </div>
+
+      <div class="section-divider" style="margin-top:36px"><span>Background Music Vibe</span></div>
+
+      <div class="music-grid" id="music-grid">
+        <!-- filled by JS -->
+      </div>
+
+      <div class="section-divider" style="margin-top:36px"><span>About You (the Wisher)</span></div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Your Name</label>
+          <input type="text" id="wisher-name" placeholder="e.g. Rohit Verma" />
+        </div>
+        <div class="field">
+          <label>Your Relationship</label>
+          <select id="wisher-relation">
+            <option value="">Select...</option>
+            <option>Best Friend</option>
+            <option>Partner / Lover</option>
+            <option>Sibling</option>
+            <option>Parent</option>
+            <option>Colleague</option>
+            <option>Secret Admirer</option>
+            <option>Family Member</option>
+            <option>Mentor</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:20px">
+        <label>A special memory or message (optional)</label>
+        <textarea id="wisher-memory" placeholder="Something only you two would remember... a joke, a place, a moment."></textarea>
+      </div>
+
+      <div id="form-error" class="error-msg">Please fill in the name, date of birth, and select at least one hobby.</div>
+
+      <button class="btn-generate" id="generate-btn" onclick="generateWish()">
+        ✨ Generate Their Birthday Magic
+      </button>
+    </div>
+  </div>
+
+  <!-- RESULT SECTION -->
+  <div id="result-section">
+    <div class="result-wrapper">
+      <button class="back-btn" onclick="goBack()">← Make Another Wish</button>
+
+      <div id="birthday-banner" class="birthday-banner animate-in"></div>
+      <div id="nasa-section" class="animate-in delay-1"></div>
+      <div id="wish-main" class="animate-in delay-2"></div>
+      <div id="acrostic-section" class="animate-in delay-3"></div>
+      <div id="hobbies-section" class="animate-in delay-4"></div>
+      <div id="future-section" class="animate-in delay-5"></div>
+      <div id="wisher-section" class="animate-in delay-5"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading">
+  <div class="loader-ring"></div>
+  <div class="loading-text">Crafting the magic...</div>
+  <div style="font-size:13px;color:rgba(240,232,208,0.45);margin-top:-10px" id="loading-step">Fetching stars from NASA...</div>
+</div>
+
+<!-- MUSIC PLAYER -->
+<div class="music-player" id="music-player">
+  <button class="music-btn" id="music-btn" onclick="toggleMusic()">▶</button>
+  <div>
+    <div class="music-label" id="music-label">Background Music</div>
+    <div class="equalizer" id="equalizer" style="display:none">
+      <div class="eq-bar" style="--d:0.5s;--h:14px"></div>
+      <div class="eq-bar" style="--d:0.7s;--h:10px"></div>
+      <div class="eq-bar" style="--d:0.4s;--h:16px"></div>
+      <div class="eq-bar" style="--d:0.6s;--h:8px"></div>
+    </div>
+  </div>
+</div>
+
+<audio id="bg-audio" loop></audio>
+
+<script>
+const HOBBIES = [
+  {emoji:'📚', label:'Reading'}, {emoji:'🎵', label:'Music'}, {emoji:'🎨', label:'Art / Painting'},
+  {emoji:'🏃', label:'Running'}, {emoji:'🍳', label:'Cooking'}, {emoji:'✈️', label:'Travel'},
+  {emoji:'📸', label:'Photography'}, {emoji:'🎮', label:'Gaming'}, {emoji:'🧘', label:'Yoga / Meditation'},
+  {emoji:'🎭', label:'Acting / Theatre'}, {emoji:'💃', label:'Dancing'}, {emoji:'⚽', label:'Football'},
+  {emoji:'🏊', label:'Swimming'}, {emoji:'🌿', label:'Gardening'}, {emoji:'✍️', label:'Writing'},
+  {emoji:'🎸', label:'Playing Instrument'}, {emoji:'🏋️', label:'Gym / Fitness'}, {emoji:'🎬', label:'Movies'},
+  {emoji:'🐾', label:'Animals / Pets'}, {emoji:'🔭', label:'Astronomy'}, {emoji:'🧁', label:'Baking'},
+  {emoji:'🖥️', label:'Tech / Coding'}
+];
+
+const MUSIC_VIBES = [
+  {emoji:'🎹', label:'Soft Piano', src:'https://www.bensound.com/bensound-music/bensound-romantic.mp3'},
+  {emoji:'🎻', label:'Classical', src:'https://www.bensound.com/bensound-music/bensound-hey.mp3'},
+  {emoji:'💫', label:'Dreamy Ambient', src:'https://www.bensound.com/bensound-music/bensound-memories.mp3'},
+  {emoji:'🎷', label:'Jazz Lounge', src:'https://www.bensound.com/bensound-music/bensound-jazzyfrenchy.mp3'},
+  {emoji:'🌊', label:'Chill Lo-Fi', src:'https://www.bensound.com/bensound-music/bensound-sunny.mp3'},
+  {emoji:'🎉', label:'Upbeat Pop', src:'https://www.bensound.com/bensound-music/bensound-summer.mp3'},
+];
+
+let selectedHobbies = [];
+let selectedMusic = null;
+let photoDataURL = null;
+
+// STARS
+function initStars() {
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  for(let i=0; i<200; i++) {
+    const x = Math.random()*canvas.width;
+    const y = Math.random()*canvas.height;
+    const r = Math.random()*1.5+0.2;
+    const opacity = Math.random()*0.7+0.1;
+    ctx.beginPath();
+    ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${opacity})`;
+    ctx.fill();
+  }
+}
+initStars();
+
+// HOBBIES
+const hg = document.getElementById('hobbies-grid');
+HOBBIES.forEach(h => {
+  const d = document.createElement('div');
+  d.className = 'hobby-chip';
+  d.innerHTML = `${h.emoji} ${h.label}`;
+  d.onclick = () => {
+    d.classList.toggle('selected');
+    if(d.classList.contains('selected')) selectedHobbies.push(h.label);
+    else selectedHobbies = selectedHobbies.filter(x => x !== h.label);
+  };
+  hg.appendChild(d);
+});
+
+// MUSIC
+const mg = document.getElementById('music-grid');
+MUSIC_VIBES.forEach((m,i) => {
+  const d = document.createElement('div');
+  d.className = 'music-chip';
+  d.innerHTML = `${m.emoji}<br><span style="font-weight:500">${m.label}</span>`;
+  d.onclick = () => {
+    document.querySelectorAll('.music-chip').forEach(c => c.classList.remove('selected'));
+    d.classList.add('selected');
+    selectedMusic = m;
+  };
+  mg.appendChild(d);
+});
+
+// PHOTO
+document.getElementById('bday-photo').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    photoDataURL = ev.target.result;
+    const prev = document.getElementById('photo-preview');
+    prev.src = photoDataURL;
+    prev.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
+
+// NASA APOD
+async function fetchNASA(date) {
+  const dateStr = date.toISOString().split('T')[0];
+  const nasaDate = dateStr.slice(0,4) < '1995' 
+    ? '1995-06-16' 
+    : dateStr;
+  try {
+    const res = await fetch(`https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&date=${nasaDate}`);
+    if(!res.ok) throw new Error('NASA failed');
+    return await res.json();
+  } catch(e) {
+    return null;
+  }
+}
+
+// CLAUDE API
+async function callClaude(prompt) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const data = await res.json();
+  return data.content?.[0]?.text || '';
+}
+
+async function generateWish() {
+  const name = document.getElementById('bday-name').value.trim();
+  const dob = document.getElementById('bday-dob').value;
+  const gender = document.getElementById('bday-gender').value;
+  const wisherName = document.getElementById('wisher-name').value.trim();
+  const wisherRelation = document.getElementById('wisher-relation').value;
+  const memory = document.getElementById('wisher-memory').value.trim();
+  const customHobby = document.getElementById('custom-hobby').value.trim();
+  const errDiv = document.getElementById('form-error');
+
+  const allHobbies = [...selectedHobbies];
+  if(customHobby) allHobbies.push(customHobby);
+
+  if(!name || !dob || allHobbies.length === 0) {
+    errDiv.style.display = 'block';
+    errDiv.textContent = 'Please fill in the name, date of birth, and select at least one hobby.';
+    return;
+  }
+  errDiv.style.display = 'none';
+
+  const dobDate = new Date(dob);
+  const today = new Date();
+  const age = today.getFullYear() - dobDate.getFullYear();
+  const dobFormatted = dobDate.toLocaleDateString('en-IN', {day:'numeric', month:'long', year:'numeric'});
+  const pronouns = gender === 'her' ? {subject:'she', object:'her', possessive:'her'} 
+    : gender === 'him' ? {subject:'he', object:'him', possessive:'his'}
+    : {subject:'they', object:'them', possessive:'their'};
+
+  document.getElementById('loading').classList.add('active');
+
+  // STEP 1 — NASA
+  document.getElementById('loading-step').textContent = 'Fetching NASA photo from your birth day...';
+  const nasaData = await fetchNASA(dobDate);
+
+  // STEP 2 — Main wish
+  document.getElementById('loading-step').textContent = 'Crafting the perfect birthday message...';
+  const wishPrompt = `Write a heartfelt, poetic, and slightly flirtatious birthday wish for ${name} who loves ${allHobbies.join(', ')}. 
+The wisher is ${wisherName || 'a special someone'}, their ${wisherRelation || 'friend'}.
+${memory ? `Special memory/message to weave in: "${memory}"` : ''}
+The wish should be 3 paragraphs. The first should be romantic and slightly flirty complimenting ${pronouns.object} charm. Second should reference ${pronouns.possessive} hobbies creatively. Third should be warm and sincere. Keep it under 200 words. Do not use placeholder text. Write it ready to share.`;
+
+  const wishText = await callClaude(wishPrompt);
+
+  // STEP 3 — Acrostic
+  document.getElementById('loading-step').textContent = 'Decoding the letters of the birthday name...';
+  const letters = name.replace(/\s/g,'').toUpperCase().split('');
+  const acrosticPrompt = `Create an acrostic poem for the name "${name.replace(/\s/g,'')}". For each letter, write a short phrase (5-8 words) that describes someone amazing, charming, and lovable. Return ONLY a JSON array like: [{"letter":"A","phrase":"Always lighting up every room entered"}]. No explanation, no markdown.`;
+  let acrosticData = [];
+  try {
+    const acroRaw = await callClaude(acrosticPrompt);
+    const cleaned = acroRaw.replace(/```json|```/g,'').trim();
+    acrosticData = JSON.parse(cleaned);
+  } catch(e) { acrosticData = letters.map(l => ({letter:l, phrase:'A wonderful person who brightens every day'})); }
+
+  // STEP 4 — Future wishes
+  document.getElementById('loading-step').textContent = 'Writing wishes for the future...';
+  const futurePrompt = `Write 4 short, heartfelt, and slightly poetic future wishes for ${name} who loves ${allHobbies.join(', ')}, turning ${age}. Each wish should be 1-2 sentences. Format as a JSON array of strings. No markdown.`;
+  let futureWishes = [];
+  try {
+    const futureRaw = await callClaude(futurePrompt);
+    futureWishes = JSON.parse(futureRaw.replace(/```json|```/g,'').trim());
+  } catch(e) { futureWishes = ['May every dream you chase come true.', 'May love surround you always.', 'May your passions lead you to joy.', 'May this year be your most beautiful yet.']; }
+
+  document.getElementById('loading').classList.remove('active');
+
+  // RENDER
+  renderResult({name, dob, dobFormatted, age, allHobbies, nasaData, wishText, acrosticData, futureWishes, wisherName, wisherRelation, memory, gender});
+}
+
+function renderResult({name, dob, dobFormatted, age, allHobbies, nasaData, wishText, acrosticData, futureWishes, wisherName, wisherRelation}) {
+  document.getElementById('form-section').style.display = 'none';
+  const rs = document.getElementById('result-section');
+  rs.style.display = 'block';
+
+  // Banner
+  const banner = document.getElementById('birthday-banner');
+  const photo = photoDataURL ? `<img class="birthday-photo" src="${photoDataURL}" alt="${name}" />` : '';
+  banner.innerHTML = `
+    ${photo}
+    <div class="birthday-name">${name}</div>
+    <div class="birthday-age">Born ${dobFormatted} · Turning ${age} today</div>
+    <div style="margin-top:20px;font-size:28px;letter-spacing:8px">🎂 🎉 🎊 🥂 ✨</div>
+  `;
+
+  // NASA
+  const nasaEl = document.getElementById('nasa-section');
+  if(nasaData && (nasaData.hdurl || nasaData.url)) {
+    const isImg = nasaData.media_type === 'image';
+    nasaEl.innerHTML = `
+      <div class="nasa-card">
+        ${isImg ? `<img class="nasa-img" src="${nasaData.hdurl || nasaData.url}" alt="${nasaData.title}" loading="lazy"/>` : ''}
+        <div class="nasa-info">
+          <div class="nasa-label">🔭 The Universe on Your Birthday — NASA Astronomy Picture of the Day</div>
+          <div class="nasa-title">${nasaData.title}</div>
+          <div class="nasa-desc">${nasaData.explanation?.slice(0,380)}...</div>
+        </div>
+      </div>`;
+  } else {
+    nasaEl.innerHTML = `
+      <div class="nasa-card">
+        <div class="nasa-info" style="text-align:center;padding:40px">
+          <div class="nasa-label">🔭 The Universe on Your Birthday</div>
+          <div class="nasa-title">Even the stars aligned the day you were born</div>
+          <div class="nasa-desc">The cosmos celebrated your arrival — the universe has never been the same since.</div>
+        </div>
+      </div>`;
+  }
+
+  // Main wish
+  document.getElementById('wish-main').innerHTML = `
+    <div class="wish-card">
+      <h3>✨ A Letter Just for You</h3>
+      <div class="wish-text">${wishText.replace(/\n\n/g,'</p><p style="margin-top:16px">').replace(/^/,'<p>').replace(/$/,'</p>')}</div>
+    </div>`;
+
+  // Acrostic
+  const acroHTML = acrosticData.map(row => `
+    <div class="acrostic-row">
+      <div class="acrostic-letter">${row.letter}</div>
+      <div class="acrostic-word">— ${row.phrase}</div>
+    </div>`).join('');
+  document.getElementById('acrostic-section').innerHTML = `
+    <div class="acrostic-card">
+      <h3>💌 What your name truly means</h3>
+      ${acroHTML}
+    </div>`;
+
+  // Hobbies — show count equal to number of letters in name or hobbies count, whichever smaller
+  const dobDate = new Date(dob);
+  const hobbyCount = Math.min(allHobbies.length, dobDate.getDate());
+  const displayHobbies = allHobbies.slice(0, hobbyCount > 0 ? hobbyCount : allHobbies.length);
+  const hobbyEmojis = {'Reading':'📚','Music':'🎵','Art / Painting':'🎨','Running':'🏃','Cooking':'🍳','Travel':'✈️','Photography':'📸','Gaming':'🎮','Yoga / Meditation':'🧘','Acting / Theatre':'🎭','Dancing':'💃','Football':'⚽','Swimming':'🏊','Gardening':'🌿','Writing':'✍️','Playing Instrument':'🎸','Gym / Fitness':'🏋️','Movies':'🎬','Animals / Pets':'🐾','Astronomy':'🔭','Baking':'🧁','Tech / Coding':'🖥️'};
+  const hobbyItems = displayHobbies.map(h => `<div class="hobby-item"><span class="hobby-emoji">${hobbyEmojis[h]||'🌟'}</span>${h}</div>`).join('');
+  document.getElementById('hobbies-section').innerHTML = `
+    <div class="hobbies-display">
+      <h3>🌟 ${displayHobbies.length} things that make you, YOU — one for each year...</h3>
+      <div class="hobby-items">${hobbyItems}</div>
+    </div>`;
+
+  // Future
+  const futureItems = futureWishes.map(w => `<p style="color:rgba(240,232,208,0.85);font-size:15px;line-height:1.8;margin-bottom:12px">🌠 ${w}</p>`).join('');
+  document.getElementById('future-section').innerHTML = `
+    <div class="future-card">
+      <h3>🔮 Wishes for the road ahead</h3>
+      ${futureItems}
+    </div>`;
+
+  // Wisher
+  if(wisherName) {
+    const initials = wisherName.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('wisher-section').innerHTML = `
+      <div class="wisher-card">
+        <div class="wisher-avatar">${initials}</div>
+        <div class="wisher-info">
+          <p>This birthday magic was crafted with love by</p>
+          <strong>${wisherName}</strong>
+          ${wisherRelation ? `<p style="margin-top:4px;color:rgba(240,232,208,0.4)">${wisherRelation}</p>` : ''}
+        </div>
+      </div>`;
+  }
+
+  // Music
+  if(selectedMusic) {
+    const audio = document.getElementById('bg-audio');
+    audio.src = selectedMusic.src;
+    document.getElementById('music-label').textContent = `${selectedMusic.emoji} ${selectedMusic.label}`;
+    document.getElementById('music-player').classList.add('visible');
+    audio.play().catch(()=>{});
+    document.getElementById('music-btn').textContent = '⏸';
+    document.getElementById('equalizer').style.display = 'flex';
+  }
+
+  // Confetti
+  launchConfetti();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function toggleMusic() {
+  const audio = document.getElementById('bg-audio');
+  const btn = document.getElementById('music-btn');
+  const eq = document.getElementById('equalizer');
+  if(audio.paused) {
+    audio.play();
+    btn.textContent = '⏸';
+    eq.style.display = 'flex';
+  } else {
+    audio.pause();
+    btn.textContent = '▶';
+    eq.style.display = 'none';
+  }
+}
+
+function goBack() {
+  document.getElementById('result-section').style.display = 'none';
+  document.getElementById('form-section').style.display = 'block';
+  document.getElementById('bg-audio').pause();
+  document.getElementById('music-player').classList.remove('visible');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function launchConfetti() {
+  const colors = ['#c9a84c','#f0d080','#e8547a','#7c4dff','#00bfa5','#ffffff'];
+  for(let i=0; i<80; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random()*100+'vw';
+    el.style.top = '-10px';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.width = (Math.random()*8+4)+'px';
+    el.style.height = (Math.random()*8+4)+'px';
+    el.style.animationDuration = (Math.random()*2+2)+'s';
+    el.style.animationDelay = (Math.random()*1.5)+'s';
+    el.style.borderRadius = Math.random()>0.5 ? '50%' : '2px';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 5000);
+  }
+}
+</script>
+</body>
+</html>
